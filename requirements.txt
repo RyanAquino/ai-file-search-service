@@ -1,2 +1,8 @@
 fastapi[standard]
 pydantic-settings
+werkzeug
+google-cloud-storage
+pyjwt
+sqlalchemy
+psycopg2-binary
+passlib[bcrypt]
