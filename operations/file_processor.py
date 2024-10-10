@@ -1,7 +1,10 @@
+import uuid
+
 from fastapi import UploadFile
 from fastapi.exceptions import RequestValidationError
 
 from settings import Settings
+from werkzeug.utils import secure_filename
 
 
 class FileProcessor:
@@ -25,18 +28,29 @@ class FileProcessor:
         valid_file_types = ', '.join(valid_extensions)
 
         for file in self.files:
-            file_ext = file.filename.split(".")
-
-            if not file_ext:
+            if "." not in file.filename:
                 raise RequestValidationError(f"Invalid file no extension: {file.filename}")
 
-            file_ext = file_ext[-1]
+            file_ext = file.filename.split(".")[-1]
 
-            if file.content_type not in valid_content_types or file_ext not in valid_extensions:
+            if file.content_type.lower() not in valid_content_types or file_ext.lower() not in valid_extensions:
                 raise RequestValidationError(f"Valid types supported: {valid_file_types}")
 
             if file.size > self.settings.max_file_bytes_size:
                 raise RequestValidationError(f"File size too large for file {file.filename}")
 
-    def process_upload(self):
-        pass
+    def sanitize_file_names(self):
+        sanitized_files = []
+
+        for file in self.files:
+            sanitized_files.append(
+                f"{uuid.uuid4()}_{secure_filename(file.filename)}"
+            )
+
+        return sanitized_files
+
+    def upload_files(self):
+        files = self.sanitize_file_names()
+        # Upload
+        # Get signed URLs
+

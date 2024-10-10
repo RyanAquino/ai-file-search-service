@@ -17,6 +17,6 @@ def upload_attachments(files: list[UploadFile], settings: Settings = Depends(get
     except RequestValidationError as e:
         raise HTTPException(status_code=400, detail=e.errors())
 
-    process.process_upload()
+    process.upload_files()
 
     return [{"username": "Rick"}, {"username": "Morty"}]
