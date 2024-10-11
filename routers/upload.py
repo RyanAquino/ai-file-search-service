@@ -24,11 +24,11 @@ def upload_attachments(
     try:
         process.validate_files()
     except RequestValidationError as e:
-        raise HTTPException(status_code=400, detail=e.errors())
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.errors())
 
     try:
         urls = process.upload_files()
     except exceptions.GoogleCloudError as e:
-        raise HTTPException(status_code=503, detail=e.errors())
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=e.errors())
 
     return JSONResponse(status_code=status.HTTP_200_OK, content={"data": urls})
