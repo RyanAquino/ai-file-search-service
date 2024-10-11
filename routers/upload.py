@@ -2,11 +2,12 @@
 from fastapi import APIRouter, UploadFile, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from google.cloud import storage
+from google.cloud import storage, exceptions
 
 from dependencies import get_current_user, get_gcp_client
 from operations.file_processor import FileProcessor
 from settings import Settings, get_settings
+
 
 router = APIRouter()
 
@@ -25,6 +26,9 @@ def upload_attachments(
     except RequestValidationError as e:
         raise HTTPException(status_code=400, detail=e.errors())
 
-    urls = process.upload_files()
+    try:
+        urls = process.upload_files()
+    except exceptions.GoogleCloudError as e:
+        raise HTTPException(status_code=503, detail=e.errors())
 
     return JSONResponse(status_code=status.HTTP_200_OK, content={"data": urls})

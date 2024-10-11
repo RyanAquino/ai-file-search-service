@@ -7,6 +7,7 @@ from fastapi.exceptions import RequestValidationError
 from settings import Settings
 from werkzeug.utils import secure_filename
 from google.cloud import storage
+from google.cloud import exceptions
 
 
 class FileProcessor:
@@ -72,10 +73,13 @@ class FileProcessor:
             file_obj = file.get("file_obj")
             sanitized_name = file.get("sanitized_filename")
             
-            blob = self.bucket.blob(sanitized_name)
-            blob.upload_from_file(file_obj.file, content_type=file_obj.content_type)
-            
-            presigned_url = self.generate_signed_url(sanitized_name)
+            try:
+                blob = self.bucket.blob(sanitized_name)
+                blob.upload_from_file(file_obj.file, content_type=file_obj.content_type)
+                presigned_url = self.generate_signed_url(sanitized_name)
+            except exceptions.GoogleCloudError:
+                raise
+
             presigned_urls.append({
                 "filename": file.get("filename"),
                 "presigned_url": presigned_url,
