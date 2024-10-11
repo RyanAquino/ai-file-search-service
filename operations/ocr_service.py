@@ -94,15 +94,3 @@ class OCRService:
             raise RequestValidationError(f"Invalid signed URL: expired")
 
         return parsed_url.path.split("/")[-1]
-
-    def search(self):
-        txt = "地階を除く階数が二を超える建築物の"
-        fake_search = fake_embeddings.embed_query(txt)
-
-        result = self.pinecone_index.query(
-            vector=fake_search,  # The vector you just generated from the query text
-            top_k=5,  # Number of results to return
-            include_values=False,  # Include the actual vectors in the results
-            namespace="paragraphs",
-            include_metadata=True,
-        )
