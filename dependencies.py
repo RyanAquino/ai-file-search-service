@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from database import get_db_session
 from models.user import User
 from settings import get_settings, Settings
+from google.cloud import storage
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login")
 
@@ -46,3 +47,13 @@ async def get_current_user(
         raise credentials_exception
 
     return user
+
+
+def get_gcp_client(settings: Settings = Depends(get_settings)):
+    storage_client = storage.Client()
+    bucket_name = f"{storage_client.project}_{settings.bucket_name}"
+
+    if not storage_client.bucket(bucket_name).exists():
+        storage_client.create_bucket(bucket_name)
+
+    return storage_client

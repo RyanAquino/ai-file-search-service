@@ -14,8 +14,11 @@ class Settings(BaseSettings):
     token_exp_minutes: int = Field(default=60, alias='TOKEN_EXPIRE_MINUTES')
     jwt_secret_key: str = Field("secret-key", alias='JWT_SECRET_KEY')
     jwt_algorithm: str = Field("HS256", alias='JWT_ALGORITHM')
+    gcp_creds: str = Field(..., alias='GOOGLE_APPLICATION_CREDENTIALS')
+    bucket_name: str = Field(default="new-bucket", alias='BUCKET_NAME')
+    gcp_storage_exp_minutes: int = Field(default=15, alias='STORAGE_EXPIRE_MINUTES')
 
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file=".env", extra="allow")
 
 
 @lru_cache
