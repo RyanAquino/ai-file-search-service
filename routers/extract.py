@@ -1,6 +1,11 @@
 from fastapi import APIRouter, Depends
 
-from dependencies import get_current_user, get_pinecone_index, get_llm_embedding_client, get_redis_client
+from dependencies import (
+    get_current_user,
+    get_llm_embedding_client,
+    get_pinecone_index,
+    get_redis_client,
+)
 from operations.semantic_search_service import SemanticSearchService
 from settings import Settings, get_settings
 
@@ -15,8 +20,10 @@ def extract_related_words(
     _=Depends(get_current_user),
     pinecone_index=Depends(get_pinecone_index),
     llm_embedding_client=Depends(get_llm_embedding_client),
-    redis_client=Depends(get_redis_client)
+    redis_client=Depends(get_redis_client),
 ):
-    search_service = SemanticSearchService(settings, pinecone_index, llm_embedding_client, redis_client)
+    search_service = SemanticSearchService(
+        settings, pinecone_index, llm_embedding_client, redis_client
+    )
 
     return search_service.search(query_text, file_id)

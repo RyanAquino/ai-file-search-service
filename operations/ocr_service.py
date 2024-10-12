@@ -1,8 +1,8 @@
+import json
 import time
 import uuid
 from pathlib import Path
-import json
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs, urlparse
 
 from fastapi import HTTPException
 from fastapi.exceptions import RequestValidationError
@@ -65,32 +65,38 @@ class OCRService:
                 {
                     "id": str(uuid.uuid4()),
                     "values": embedding,
-                    "metadata": {"text": txt, "file_id": file_id}
+                    "metadata": {"text": txt, "file_id": file_id},
                 }
             )
 
         for idx in range(0, len(index_payload), self.settings.embedding_chunk_size):
             self.pinecone_index.upsert(
-                vectors=index_payload[idx: idx + self.settings.embedding_chunk_size - 1],
+                vectors=index_payload[
+                    idx : idx + self.settings.embedding_chunk_size - 1
+                ],
                 namespace=self.settings.embedding_namespace,
-                async_req=True
+                async_req=True,
             )
 
     def get_filename_from_url(self, signed_url):
         parsed_url = urlparse(signed_url)
 
         if not signed_url.startswith("https"):
-            raise RequestValidationError("Signed URL must use HTTPS for secure transmission.")
+            raise RequestValidationError(
+                "Signed URL must use HTTPS for secure transmission."
+            )
 
         if not parsed_url.netloc.endswith("storage.googleapis.com"):
             raise RequestValidationError("Invalid signed URL: must be for GCS")
 
         if self.settings.bucket_name not in parsed_url.path:
-            raise RequestValidationError(f"Signed URL not pointing to expected bucket {self.settings.bucket_name}")
+            raise RequestValidationError(
+                f"Signed URL not pointing to expected bucket {self.settings.bucket_name}"
+            )
 
         expire_time = parse_qs(parsed_url.query).get("Expires")
 
         if not expire_time or float(expire_time[0]) <= time.time():
-            raise RequestValidationError(f"Invalid signed URL: expired")
+            raise RequestValidationError("Invalid signed URL: expired")
 
         return parsed_url.path.split("/")[-1]

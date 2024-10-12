@@ -1,18 +1,18 @@
 from functools import lru_cache
 
+import jwt
+import redis  # type: ignore[import-untyped]
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-import jwt
+from google.cloud import storage  # type: ignore[attr-defined]
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from langchain_openai import OpenAIEmbeddings
+from pinecone import Pinecone, ServerlessSpec
 from sqlalchemy.orm import Session
 
 from database import get_db_session
 from models.user import User
-from settings import get_settings, Settings
-from google.cloud import storage
-from pinecone import Pinecone, ServerlessSpec
-import redis
+from settings import Settings, get_settings
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login")
 
@@ -20,7 +20,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login")
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
     settings: Settings = Depends(get_settings),
-    session: Session = Depends(get_db_session)
+    session: Session = Depends(get_db_session),
 ):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -32,7 +32,7 @@ async def get_current_user(
         payload = jwt.decode(
             token,
             settings.jwt_secret_key,
-            algorithms=[settings.jwt_algorithm],
+            algorithms=[settings.jwt_algorithm],  # type: ignore[list-item]
         )
         username: str = payload.get("sub")
         if username is None:
@@ -75,11 +75,8 @@ def get_pinecone_index(settings: Settings = Depends(get_settings)):
         pc.create_index(
             name=settings.pinecone_index_name,
             dimension=1536,
-            metric='cosine',
-            spec=ServerlessSpec(
-                cloud="aws",
-                region="us-east-1"
-            )
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         )
 
     return pc.Index(settings.pinecone_index_name)
@@ -93,5 +90,10 @@ def get_llm_embedding_client():
 
 
 def get_redis_client(settings: Settings = Depends(get_settings)):
-    client = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=settings.redis_cache_db, decode_responses=True)
+    client = redis.Redis(
+        host=settings.redis_host,
+        port=settings.redis_port,
+        db=settings.redis_cache_db,
+        decode_responses=True,
+    )
     return client

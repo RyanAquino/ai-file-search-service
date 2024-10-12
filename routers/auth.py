@@ -1,21 +1,20 @@
 from fastapi import APIRouter, Depends
+from fastapi.security import OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from database import get_db_session
 from operations.auth import AuthOperations
-from settings import get_settings, Settings
+from settings import Settings, get_settings
 
 router = APIRouter()
-
-from fastapi.security import OAuth2PasswordRequestForm
 
 
 @router.post("/login")
 def login(
     request_payload: OAuth2PasswordRequestForm = Depends(OAuth2PasswordRequestForm),
     session: Session = Depends(get_db_session),
-    settings: Settings = Depends(get_settings)
+    settings: Settings = Depends(get_settings),
 ):
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     auth = AuthOperations(session, settings, pwd_context)
@@ -28,7 +27,7 @@ def register(
     username: str,
     password: str,
     session: Session = Depends(get_db_session),
-    settings: Settings = Depends(get_settings)
+    settings: Settings = Depends(get_settings),
 ):
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     auth = AuthOperations(session, settings, pwd_context)

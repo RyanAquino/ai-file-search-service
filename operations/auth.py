@@ -1,16 +1,15 @@
-from fastapi import HTTPException
+from datetime import datetime, timedelta, timezone
+
+import jwt
+from fastapi import HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from passlib.context import CryptContext
-from sqlalchemy.orm import Session
-from datetime import datetime, timezone, timedelta
-
-from models.response import UserToken, TokenResponse
-from models.user import User
 from sqlalchemy.exc import IntegrityError
-from fastapi import status
+from sqlalchemy.orm import Session
 
+from models.response import TokenResponse, UserToken
+from models.user import User
 from settings import Settings
-import jwt
 
 
 class AuthOperations:
@@ -21,7 +20,11 @@ class AuthOperations:
         self.settings = settings
 
     def login(self, request_payload: OAuth2PasswordRequestForm):
-        user = self.session.query(User).filter(User.username == request_payload.username).first()
+        user = (
+            self.session.query(User)
+            .filter(User.username == request_payload.username)
+            .first()
+        )
 
         if not user:
             raise HTTPException(

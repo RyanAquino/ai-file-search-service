@@ -1,8 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from settings import get_settings
 from models.user import Base
+from settings import get_settings
 
 settings = get_settings()
 engine = create_engine(settings.db_url, pool_pre_ping=True)
