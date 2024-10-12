@@ -1,13 +1,18 @@
+from functools import lru_cache
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 import jwt
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
+from langchain_openai import OpenAIEmbeddings
 from sqlalchemy.orm import Session
 
 from database import get_db_session
 from models.user import User
 from settings import get_settings, Settings
 from google.cloud import storage
+from pinecone import Pinecone, ServerlessSpec
+
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login")
 
@@ -49,11 +54,39 @@ async def get_current_user(
     return user
 
 
-def get_gcp_client(settings: Settings = Depends(get_settings)):
+@lru_cache
+def get_gcp_storage_client(bucket_name: str):
     storage_client = storage.Client()
-    bucket_name = f"{storage_client.project}_{settings.bucket_name}"
+    full_bucket_name = f"{storage_client.project}_{bucket_name}"
 
-    if not storage_client.bucket(bucket_name).exists():
-        storage_client.create_bucket(bucket_name)
+    if not storage_client.bucket(full_bucket_name).exists():
+        storage_client.create_bucket(full_bucket_name)
 
     return storage_client
+
+
+def get_gcp_client(settings: Settings = Depends(get_settings)):
+    return get_gcp_storage_client(settings.bucket_name)
+
+
+def get_pinecone_index(settings: Settings = Depends(get_settings)):
+    pc = Pinecone(api_key=settings.pinecone_api_key, pool_threads=30)
+    if not pc.has_index(settings.pinecone_index_name):
+        pc.create_index(
+            name=settings.pinecone_index_name,
+            dimension=1536,
+            metric='cosine',
+            spec=ServerlessSpec(
+                cloud="aws",
+                region="us-east-1"
+            )
+        )
+
+    return pc.Index(settings.pinecone_index_name)
+
+
+@lru_cache
+def get_llm_embedding_client():
+    return OpenAIEmbeddings(
+        model="text-embedding-ada-002",
+    )

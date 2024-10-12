@@ -1,3 +1,4 @@
+import os
 from functools import lru_cache
 
 from pydantic import Field
@@ -17,10 +18,19 @@ class Settings(BaseSettings):
     gcp_creds: str = Field(..., alias='GOOGLE_APPLICATION_CREDENTIALS')
     bucket_name: str = Field(default="new-bucket", alias='BUCKET_NAME')
     gcp_storage_exp_minutes: int = Field(default=15, alias='STORAGE_EXPIRE_MINUTES')
+    pinecone_api_key: str = Field(..., alias='PINECONE_API_KEY')
+    pinecone_index_name: str = Field("ai-file-search-service-index", alias='PINECONE_INDEX_NAME')
+    openai_api_key: str = Field(..., alias='OPENAI_API_KEY')
+    embedding_chunk_size: int = Field(default=200, alias='EMBEDDING_CHUNK_SIZE')
+    embedding_namespace: str = Field(default="paragraphs", alias='EMBEDDING_NAMESPACE')
 
     model_config = SettingsConfigDict(env_file=".env", extra="allow")
 
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    settings = Settings()
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = settings.gcp_creds
+    os.environ["OPENAI_API_KEY"] = settings.openai_api_key
+
+    return settings
