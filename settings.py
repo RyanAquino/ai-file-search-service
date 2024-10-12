@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     openai_api_key: str = Field(..., alias='OPENAI_API_KEY')
     embedding_chunk_size: int = Field(default=200, alias='EMBEDDING_CHUNK_SIZE')
     embedding_namespace: str = Field(default="paragraphs", alias='EMBEDDING_NAMESPACE')
+    redis_host: str = Field("localhost", alias='REDIS_HOST')
+    redis_port: int = Field(6379, alias='REDIS_PORT')
+    redis_cache_db: int = Field(1, alias='REDIS_CACHE_DB')
 
     model_config = SettingsConfigDict(env_file=".env", extra="allow")
 

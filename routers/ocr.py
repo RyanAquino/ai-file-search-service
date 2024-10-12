@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, status, Response, Request
-from fastapi_limiter.depends import RateLimiter
 
 from dependencies import get_current_user, get_llm_embedding_client, get_pinecone_index
 from operations.ocr_service import OCRService

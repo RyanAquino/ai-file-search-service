@@ -12,7 +12,7 @@ from models.user import User
 from settings import get_settings, Settings
 from google.cloud import storage
 from pinecone import Pinecone, ServerlessSpec
-
+import redis
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login")
 
@@ -90,3 +90,8 @@ def get_llm_embedding_client():
     return OpenAIEmbeddings(
         model="text-embedding-ada-002",
     )
+
+
+def get_redis_client(settings: Settings = Depends(get_settings)):
+    client = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=settings.redis_cache_db, decode_responses=True)
+    return client
