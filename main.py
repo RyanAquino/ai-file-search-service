@@ -1,3 +1,5 @@
+"""Main module."""
+
 import uvicorn
 from fastapi import FastAPI
 from slowapi import _rate_limit_exceeded_handler
@@ -9,6 +11,11 @@ from settings import get_settings
 
 
 def create_app():
+    """
+    Create FatAPI application.
+
+    :return: FastAPI application instance.
+    """
     app = FastAPI()
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -17,6 +24,7 @@ def create_app():
 
 
 def main():
+    """Main entry point for FastAPI application."""
     app = create_app()
     settings = get_settings()
     uvicorn.run(

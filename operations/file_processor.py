@@ -1,3 +1,5 @@
+"""File processor module."""
+
 import uuid
 from datetime import timedelta
 
@@ -10,6 +12,7 @@ from settings import Settings
 
 
 class FileProcessor:
+    """File processor class."""
 
     def __init__(
         self,
@@ -17,6 +20,13 @@ class FileProcessor:
         gcp_client: storage.Client,
         files: list[UploadFile],
     ):
+        """
+        Inject class dependencies.
+
+        :param app_settings: Application Settings
+        :param gcp_client: GCP Client
+        :param files: request payload input files
+        """
         self.files = files
         self.settings = app_settings
         self.gcp_client = gcp_client
@@ -25,6 +35,10 @@ class FileProcessor:
         )
 
     def validate_files(self):
+        """
+        Validate files uploaded from the request payload.
+        :raises: RequestValidationError
+        """
         if len(self.files) > self.settings.max_file_upload_count:
             raise RequestValidationError(
                 f"Maximum number of valid files: {self.settings.max_file_upload_count}"
@@ -64,6 +78,11 @@ class FileProcessor:
                 )
 
     def sanitize_file_names(self):
+        """
+        Sanitize file names before uploading to cloud storage.
+
+        :return: list of sanitized file names
+        """
         sanitized_files = []
 
         for file in self.files:
@@ -78,6 +97,12 @@ class FileProcessor:
         return sanitized_files
 
     def generate_signed_url(self, file_name: str):
+        """
+        Helper function to generate signed URL from a file.
+
+        :param file_name: File name
+        :return: signed URL
+        """
         blob = self.bucket.blob(file_name)
         expiration_time = timedelta(minutes=self.settings.gcp_storage_exp_minutes)
         signed_url = blob.generate_signed_url(expiration=expiration_time)
@@ -85,6 +110,11 @@ class FileProcessor:
         return signed_url
 
     def upload_files(self):
+        """
+        Upload files to cloud storage.
+
+        :return: list of uploaded files with sanitized filename and presigned URL
+        """
         files = self.sanitize_file_names()
         presigned_urls = []
 
@@ -96,8 +126,8 @@ class FileProcessor:
                 blob = self.bucket.blob(sanitized_name)
                 blob.upload_from_file(file_obj.file, content_type=file_obj.content_type)
                 presigned_url = self.generate_signed_url(sanitized_name)
-            except exceptions.GoogleCloudError:
-                raise
+            except exceptions.GoogleCloudError as exc:
+                raise exc
 
             presigned_urls.append(
                 {

@@ -1,3 +1,5 @@
+"""Dependencies module."""
+
 from functools import lru_cache
 
 import jwt
@@ -22,6 +24,14 @@ async def get_current_user(
     settings: Settings = Depends(get_settings),
     session: Session = Depends(get_db_session),
 ):
+    """
+    Authneticate and retrieve current user info.
+
+    :param token: JWT token
+    :param settings: Application settings dependency
+    :param session: Database session dependency
+    :return: User info
+    """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -37,14 +47,14 @@ async def get_current_user(
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
-    except ExpiredSignatureError:
+    except ExpiredSignatureError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token expired",
             headers={"WWW-Authenticate": "Bearer"},
-        )
-    except InvalidTokenError:
-        raise credentials_exception
+        ) from exc
+    except InvalidTokenError as exc:
+        raise credentials_exception from exc
 
     user = session.query(User).filter(User.username == username).first()
 
@@ -56,6 +66,12 @@ async def get_current_user(
 
 @lru_cache
 def get_gcp_storage_client(bucket_name: str):
+    """
+    Get GCP storage client.
+
+    :param bucket_name: bucket name
+    :return: GCP storage client
+    """
     storage_client = storage.Client()
     full_bucket_name = f"{storage_client.project}_{bucket_name}"
 
@@ -66,10 +82,22 @@ def get_gcp_storage_client(bucket_name: str):
 
 
 def get_gcp_client(settings: Settings = Depends(get_settings)):
+    """
+    Get GCP client.
+
+    :param settings: Application settings dependency
+    :return: GCP Client storage client
+    """
     return get_gcp_storage_client(settings.bucket_name)
 
 
 def get_pinecone_index(settings: Settings = Depends(get_settings)):
+    """
+    Get Pinecone index.
+
+    :param settings: Application settings dependency
+    :return: Pinecone index instance
+    """
     pc = Pinecone(api_key=settings.pinecone_api_key, pool_threads=30)
     if not pc.has_index(settings.pinecone_index_name):
         pc.create_index(
@@ -84,12 +112,19 @@ def get_pinecone_index(settings: Settings = Depends(get_settings)):
 
 @lru_cache
 def get_llm_embedding_client():
+    """Get OpenAI LLM embeddings client"""
     return OpenAIEmbeddings(
         model="text-embedding-ada-002",
     )
 
 
 def get_redis_client(settings: Settings = Depends(get_settings)):
+    """
+    Get Redis client.
+
+    :param settings: Application settings dependency
+    :return: Redis client
+    """
     client = redis.Redis(
         host=settings.redis_host,
         port=settings.redis_port,

@@ -1,3 +1,5 @@
+"""Main router module."""
+
 from fastapi import APIRouter
 
 from routers import auth, extract, ocr, upload

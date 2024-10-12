@@ -1,3 +1,5 @@
+"""Extract API endpoint module."""
+
 from fastapi import APIRouter, Depends
 
 from dependencies import (
@@ -23,6 +25,18 @@ def extract_related_words(
     llm_embedding_client=Depends(get_llm_embedding_client),
     redis_client=Depends(get_redis_client),
 ) -> BaseDataResponse:
+    """
+    Extract related words based on given File ID and query text.
+
+    :param _: Auth dependency
+    :param query_text: Search query text
+    :param file_id: File ID or file name
+    :param settings: Application settings dependency
+    :param pinecone_index: Pinecone index dependency
+    :param llm_embedding_client: OpenAI llm embedding client dependency
+    :param redis_client: Redis client dependency
+    :return: BaseDataResponse - list of extracted paragraphs related to search term
+    """
     search_service = SemanticSearchService(
         settings, pinecone_index, llm_embedding_client, redis_client
     )

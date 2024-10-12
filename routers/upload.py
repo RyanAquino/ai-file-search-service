@@ -1,3 +1,5 @@
+"""Upload API endpoint."""
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from fastapi.exceptions import RequestValidationError
 from google.cloud import exceptions, storage  # type: ignore[attr-defined]
@@ -17,18 +19,29 @@ def upload_attachments(
     gcp_client: storage.Client = Depends(get_gcp_client),
     _=Depends(get_current_user),
 ) -> BaseDataResponse:
+    """
+    Upload files to Google Cloud Storage.
+
+    :param files: list of files to be uploaded
+    :param settings: Application settings dependency
+    :param gcp_client: GCP client dependency
+    :param _: Auth dependency
+    :return: BaseDataResponse - list of file and its presigned URLs
+    """
     process = FileProcessor(settings, gcp_client, files)
 
     try:
         process.validate_files()
     except RequestValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.errors())
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=e.errors()
+        ) from e
 
     try:
         urls = process.upload_files()
     except exceptions.GoogleCloudError as e:
         raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=e.errors()
-        )
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=e.message
+        ) from e
 
     return BaseDataResponse(data=urls)

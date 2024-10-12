@@ -1,3 +1,5 @@
+"""Settings module."""
+
 import os
 from functools import lru_cache
 from typing import Optional
@@ -7,6 +9,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    """Application settings."""
+
     app_host: Optional[str] = Field(default="0.0.0.0", alias="APP_HOST")
     app_port: Optional[int] = Field(default=3000, alias="APP_PORT")
     app_debug: Optional[bool] = Field(default=False, alias="APP_DEBUG")
@@ -44,6 +48,7 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
+    """Get application settings and set needed env variables."""
     settings = Settings()
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = settings.gcp_creds
     os.environ["OPENAI_API_KEY"] = settings.openai_api_key

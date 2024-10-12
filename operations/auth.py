@@ -1,3 +1,5 @@
+"""Auth operations module."""
+
 from datetime import datetime, timedelta, timezone
 
 import jwt
@@ -13,13 +15,27 @@ from settings import Settings
 
 
 class AuthOperations:
+    """Auth operations class."""
 
     def __init__(self, session: Session, settings: Settings, pwd_context: CryptContext):
+        """
+        Inject class dependencies.
+
+        :param session: Database session
+        :param settings: Application settings
+        :param pwd_context: Auth CryptContext
+        """
         self.pwd_context = pwd_context
         self.session = session
         self.settings = settings
 
     def login(self, request_payload: OAuth2PasswordRequestForm):
+        """
+        Login users endpoint.
+
+        :param request_payload: OAuth2PasswordRequestForm - username and password
+        :return: JWT token
+        """
         user = (
             self.session.query(User)
             .filter(User.username == request_payload.username)
@@ -54,6 +70,13 @@ class AuthOperations:
         return encoded_jwt
 
     def register(self, username: str, password: str):
+        """
+        Register Users.
+
+        :param username: user name
+        :param password: password
+        :return: User object with username and ID
+        """
         hashed_pw = self.pwd_context.hash(password)
         try:
             user = User(
@@ -63,10 +86,10 @@ class AuthOperations:
             self.session.add(user)
             self.session.commit()
             self.session.refresh(user)
-        except IntegrityError:
+        except IntegrityError as exc:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"Username {username} already exists.",
-            )
+            ) from exc
 
         return User(username=username, id=user.id)

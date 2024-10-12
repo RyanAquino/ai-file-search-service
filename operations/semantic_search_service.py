@@ -1,15 +1,33 @@
+"""Semantic search service."""
+
 import json
 
 
 class SemanticSearchService:
+    """Semantic search service."""
 
     def __init__(self, settings, pinecone_index, embedding_client, redis_client):
+        """
+        Inject class dependencies.
+
+        :param settings: Application settings
+        :param pinecone_index: Pinecone index dependency
+        :param embedding_client: OpenAI embedding client dependency
+        :param redis_client: Redis client dependency
+        """
         self.settings = settings
         self.pinecone_index = pinecone_index
         self.embedding_client = embedding_client
         self.redis_client = redis_client
 
     def search(self, search_term, file_id):
+        """
+        Perform semantic search on pinecone index based from search term and file id.
+
+        :param search_term: request payload search query text
+        :param file_id: request payload file id
+        :return: matching paragraphs texts from pinecone vector search
+        """
         search_key = f"{search_term}_{file_id}"
 
         if self.redis_client.get(search_key) is not None:

@@ -1,3 +1,5 @@
+"""Auth module."""
+
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from passlib.context import CryptContext
@@ -18,6 +20,14 @@ def login(
     session: Session = Depends(get_db_session),
     settings: Settings = Depends(get_settings),
 ) -> TokenResponse:
+    """
+    Login endpoint.
+
+    :param request_payload: request payload of type OAuth2PasswordRequestForm
+    :param session: Database session dependency
+    :param settings: Application settings dependency
+    :return: TokenResponse
+    """
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     auth = AuthOperations(session, settings, pwd_context)
     token = auth.login(request_payload)
@@ -31,6 +41,14 @@ def register(
     session: Session = Depends(get_db_session),
     settings: Settings = Depends(get_settings),
 ) -> UserRegisterResponse:
+    """
+    Register endpoint.
+
+    :param request_payload: request payload of type UserRegisterRequest
+    :param session: Database session dependency
+    :param settings: Application settings dependency
+    :return: UserRegisterResponse
+    """
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     auth = AuthOperations(session, settings, pwd_context)
     user = auth.register(request_payload.username, request_payload.password)

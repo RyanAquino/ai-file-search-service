@@ -1,3 +1,5 @@
+"""OCR Service module."""
+
 import json
 import time
 import uuid
@@ -10,8 +12,17 @@ from loguru import logger
 
 
 class OCRService:
+    """OCR Service class."""
 
     def __init__(self, settings, urls, pinecone_index, embedding_client):
+        """
+        Inject class dependencies.
+
+        :param settings: Application settings
+        :param urls: request payload URLs
+        :param pinecone_index: Pinecone index dependency
+        :param embedding_client: OpenAI embedding dependency
+        """
         self.urls = urls
         self.settings = settings
         self.embedding_client = embedding_client
@@ -19,6 +30,12 @@ class OCRService:
 
     @staticmethod
     def process_ocr(filename):
+        """
+        Mock processing of OCR
+
+        :param filename: filename to be processed
+        :return: OCR result from mock `ocr` directory
+        """
         logger.info("Processing OCR...")
 
         ocr_path = Path("ocr", filename)
@@ -34,6 +51,11 @@ class OCRService:
         return ocr_results
 
     async def process_urls(self):
+        """
+        OCR API that processes request payload URLs embeddings asynchronously.
+
+        :return: None
+        """
         texts = []
         text_file_mappings = {}
 
@@ -79,6 +101,12 @@ class OCRService:
             )
 
     def get_filename_from_url(self, signed_url):
+        """
+        Validate and get filename from presigned URL.
+
+        :param signed_url: presigned URL
+        :return: URL
+        """
         parsed_url = urlparse(signed_url)
 
         if not signed_url.startswith("https"):

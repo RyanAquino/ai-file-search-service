@@ -1,3 +1,5 @@
+"""OCR API Endpoint module."""
+
 from fastapi import APIRouter, Depends, Request, Response, status
 
 from dependencies import get_current_user, get_llm_embedding_client, get_pinecone_index
@@ -19,6 +21,18 @@ async def process_ocr(
     pinecone_index=Depends(get_pinecone_index),
     llm_embedding_client=Depends(get_llm_embedding_client),
 ):
+    """
+    A mock OCR endpoint that processes OCR results
+    embeds texts and saves it to Pinecone vector database.
+
+    :param request: Request object required for rate limiting
+    :param urls: list of file URLs to process
+    :param settings: Application settings dependency
+    :param _: Auth dependency
+    :param pinecone_index: Pinecone index dependency
+    :param llm_embedding_client: OpenAI llm embedding client dependency
+    :return:
+    """
     ocr_service = OCRService(settings, urls, pinecone_index, llm_embedding_client)
     await ocr_service.process_urls()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

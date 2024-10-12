@@ -1,13 +1,15 @@
+"""User Model."""
+
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import DeclarativeBase
 
 
 class Base(DeclarativeBase):
-    pass
+    """Base SQLAlchemy ORM."""
 
 
 class User(Base):
-    """Column model for registered_users"""
+    """Database model for users"""
 
     __tablename__ = "user"
 
