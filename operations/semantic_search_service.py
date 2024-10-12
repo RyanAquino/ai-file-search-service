@@ -44,7 +44,7 @@ class SemanticSearchService:
 
         if self.redis_client.get(search_key) is not None:
             response_data = self.redis_client.get(search_key)
-            return json.loads(response_data)
+            return json.loads(response_data)  # type:ignore[arg-type]
 
         term_embedding = self.embedding_client.embed_query(search_term)
 
