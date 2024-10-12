@@ -2,7 +2,7 @@
 
 import json
 
-import redis
+import redis  # type: ignore[import-untyped]
 from langchain_openai import OpenAIEmbeddings
 from pinecone import Pinecone
 

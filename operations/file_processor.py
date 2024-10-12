@@ -139,7 +139,7 @@ class FileProcessor:
             presigned_urls.append(
                 {
                     "filename": file.get("filename"),
-                    "sanitized_filename": sanitized_name,
+                    "file_id": sanitized_name,
                     "presigned_url": presigned_url,
                 }
             )

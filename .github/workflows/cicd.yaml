@@ -9,8 +9,11 @@ on:
 jobs:
   SCA:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python 3
         uses: actions/setup-python@v2
         with:
@@ -30,3 +33,8 @@ jobs:
       - name: Check isort imports
         run: |
           isort . --check-only --profile=black
+      - name: Build and push the image
+        run: |
+          docker login --username RyanAquino --password ${{secrets.GITHUB_TOKEN}} ghcr.io
+          docker build . -t ghcr.io/ryanaquino/ai-file-search-service
+          docker push ghcr.io/ryanaquino/ai-file-search-service:latest
