@@ -1,8 +1,5 @@
 import json
 
-from fastapi import status
-from fastapi.responses import JSONResponse
-
 
 class SemanticSearchService:
 
@@ -17,9 +14,7 @@ class SemanticSearchService:
 
         if self.redis_client.get(search_key) is not None:
             response_data = self.redis_client.get(search_key)
-            return JSONResponse(
-                status_code=status.HTTP_200_OK, content=json.loads(response_data)
-            )
+            return json.loads(response_data)
 
         term_embedding = self.embedding_client.embed_query(search_term)
 
@@ -43,7 +38,8 @@ class SemanticSearchService:
                 }
             )
 
-        response_data = {"data": match_texts}
-        self.redis_client.set(search_key, json.dumps(response_data), ex=86400)
+        self.redis_client.set(
+            search_key, json.dumps(match_texts), ex=self.settings.redis_cache_exp
+        )
 
-        return JSONResponse(status_code=status.HTTP_200_OK, content=response_data)
+        return match_texts

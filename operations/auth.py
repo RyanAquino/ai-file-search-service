@@ -7,7 +7,7 @@ from passlib.context import CryptContext
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from models.response import TokenResponse, UserToken
+from models.response import UserToken
 from models.user import User
 from settings import Settings
 
@@ -51,7 +51,7 @@ class AuthOperations:
             algorithm=self.settings.jwt_algorithm,
         )
 
-        return TokenResponse(access_token=encoded_jwt)
+        return encoded_jwt
 
     def register(self, username: str, password: str):
         hashed_pw = self.pwd_context.hash(password)

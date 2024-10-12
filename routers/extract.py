@@ -6,6 +6,7 @@ from dependencies import (
     get_pinecone_index,
     get_redis_client,
 )
+from models.response import BaseDataResponse
 from operations.semantic_search_service import SemanticSearchService
 from settings import Settings, get_settings
 
@@ -21,9 +22,10 @@ def extract_related_words(
     pinecone_index=Depends(get_pinecone_index),
     llm_embedding_client=Depends(get_llm_embedding_client),
     redis_client=Depends(get_redis_client),
-):
+) -> BaseDataResponse:
     search_service = SemanticSearchService(
         settings, pinecone_index, llm_embedding_client, redis_client
     )
+    match_texts = search_service.search(query_text, file_id)
 
-    return search_service.search(query_text, file_id)
+    return BaseDataResponse(data=match_texts)

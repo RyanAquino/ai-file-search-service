@@ -8,7 +8,7 @@ from settings import Settings, get_settings
 router = APIRouter()
 
 
-@router.post("/ocr")
+@router.post("/ocr", status_code=status.HTTP_204_NO_CONTENT)
 @limiter.limit("5/minute")
 @limiter.limit("10/hour")
 async def process_ocr(
@@ -21,5 +21,4 @@ async def process_ocr(
 ):
     ocr_service = OCRService(settings, urls, pinecone_index, llm_embedding_client)
     await ocr_service.process_urls()
-
     return Response(status_code=status.HTTP_204_NO_CONTENT)

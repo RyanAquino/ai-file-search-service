@@ -4,6 +4,8 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from database import get_db_session
+from models.requests import UserRegisterRequest
+from models.response import TokenResponse, UserRegisterResponse
 from operations.auth import AuthOperations
 from settings import Settings, get_settings
 
@@ -15,21 +17,22 @@ def login(
     request_payload: OAuth2PasswordRequestForm = Depends(OAuth2PasswordRequestForm),
     session: Session = Depends(get_db_session),
     settings: Settings = Depends(get_settings),
-):
+) -> TokenResponse:
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     auth = AuthOperations(session, settings, pwd_context)
+    token = auth.login(request_payload)
 
-    return auth.login(request_payload)
+    return TokenResponse(access_token=token)
 
 
 @router.post("/register")
 def register(
-    username: str,
-    password: str,
+    request_payload: UserRegisterRequest,
     session: Session = Depends(get_db_session),
     settings: Settings = Depends(get_settings),
-):
+) -> UserRegisterResponse:
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     auth = AuthOperations(session, settings, pwd_context)
+    user = auth.register(request_payload.username, request_payload.password)
 
-    return auth.register(username, password)
+    return UserRegisterResponse(id=user.id, username=user.username)

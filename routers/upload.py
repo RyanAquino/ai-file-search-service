@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
 from google.cloud import exceptions, storage  # type: ignore[attr-defined]
 
 from dependencies import get_current_user, get_gcp_client
+from models.response import BaseDataResponse
 from operations.file_processor import FileProcessor
 from settings import Settings, get_settings
 
@@ -16,7 +16,7 @@ def upload_attachments(
     settings: Settings = Depends(get_settings),
     gcp_client: storage.Client = Depends(get_gcp_client),
     _=Depends(get_current_user),
-):
+) -> BaseDataResponse:
     process = FileProcessor(settings, gcp_client, files)
 
     try:
@@ -31,4 +31,4 @@ def upload_attachments(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=e.errors()
         )
 
-    return JSONResponse(status_code=status.HTTP_200_OK, content={"data": urls})
+    return BaseDataResponse(data=urls)

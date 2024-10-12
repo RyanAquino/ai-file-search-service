@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     redis_host: str = Field(default="localhost", alias="REDIS_HOST")
     redis_port: int = Field(default=6379, alias="REDIS_PORT")
     redis_cache_db: Optional[int] = Field(default=1, alias="REDIS_CACHE_DB")
+    redis_cache_exp: Optional[int] = Field(default=86400, alias="REDIS_CACHE_EXP")
 
     model_config = SettingsConfigDict(env_file=".env", extra="allow")
 

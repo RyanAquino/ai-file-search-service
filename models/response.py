@@ -16,3 +16,12 @@ class UserToken(BaseModel):
     iat: Optional[datetime] = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
+
+
+class UserRegisterResponse(BaseModel):
+    id: int
+    username: str
+
+
+class BaseDataResponse(BaseModel):
+    data: Optional[list]
