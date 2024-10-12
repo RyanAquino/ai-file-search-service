@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     jwt_secret_key: Optional[str] = Field(default="secret-key", alias="JWT_SECRET_KEY")
     jwt_algorithm: Optional[str] = Field(default="HS256", alias="JWT_ALGORITHM")
     gcp_creds: str = Field(default=..., alias="GOOGLE_APPLICATION_CREDENTIALS")
-    bucket_name: Optional[str] = Field(default="new-bucket", alias="BUCKET_NAME")
+    bucket_name: str = Field(default="new-bucket", alias="BUCKET_NAME")
     gcp_storage_exp_minutes: float = Field(default=15, alias="STORAGE_EXPIRE_MINUTES")
     pinecone_api_key: str = Field(default=..., alias="PINECONE_API_KEY")
     pinecone_index_name: Optional[str] = Field(

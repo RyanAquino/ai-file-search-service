@@ -8,13 +8,23 @@ from urllib.parse import parse_qs, urlparse
 
 from fastapi import HTTPException
 from fastapi.exceptions import RequestValidationError
+from langchain_openai import OpenAIEmbeddings
 from loguru import logger
+from pinecone import Pinecone
+
+from settings import Settings
 
 
 class OCRService:
     """OCR Service class."""
 
-    def __init__(self, settings, urls, pinecone_index, embedding_client):
+    def __init__(
+        self,
+        settings: Settings,
+        urls: list[str],
+        pinecone_index: Pinecone.Index,
+        embedding_client: OpenAIEmbeddings,
+    ):
         """
         Inject class dependencies.
 
@@ -29,7 +39,7 @@ class OCRService:
         self.pinecone_index = pinecone_index
 
     @staticmethod
-    def process_ocr(filename):
+    def process_ocr(filename: str) -> dict:
         """
         Mock processing of OCR
 
@@ -42,7 +52,7 @@ class OCRService:
 
         if not ocr_path.exists():
             logger.error(f"OCR file {filename} does not exist!")
-            return None
+            return {}
 
         with open(ocr_path, "r", encoding="utf-8") as file:
             data = json.load(file)
@@ -100,7 +110,7 @@ class OCRService:
                 async_req=True,
             )
 
-    def get_filename_from_url(self, signed_url):
+    def get_filename_from_url(self, signed_url: str) -> str:
         """
         Validate and get filename from presigned URL.
 

@@ -2,11 +2,23 @@
 
 import json
 
+import redis
+from langchain_openai import OpenAIEmbeddings
+from pinecone import Pinecone
+
+from settings import Settings
+
 
 class SemanticSearchService:
     """Semantic search service."""
 
-    def __init__(self, settings, pinecone_index, embedding_client, redis_client):
+    def __init__(
+        self,
+        settings: Settings,
+        pinecone_index: Pinecone.Index,
+        embedding_client: OpenAIEmbeddings,
+        redis_client: redis.Redis,
+    ):
         """
         Inject class dependencies.
 
@@ -20,7 +32,7 @@ class SemanticSearchService:
         self.embedding_client = embedding_client
         self.redis_client = redis_client
 
-    def search(self, search_term, file_id):
+    def search(self, search_term: str, file_id: str) -> list[dict]:
         """
         Perform semantic search on pinecone index based from search term and file id.
 

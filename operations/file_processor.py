@@ -77,7 +77,7 @@ class FileProcessor:
                     f"File size too large for file {file.filename}"
                 )
 
-    def sanitize_file_names(self):
+    def sanitize_file_names(self) -> list[dict]:
         """
         Sanitize file names before uploading to cloud storage.
 
@@ -86,6 +86,10 @@ class FileProcessor:
         sanitized_files = []
 
         for file in self.files:
+
+            if not file.filename:
+                continue
+
             sanitized_files.append(
                 {
                     "filename": file.filename,
@@ -96,7 +100,7 @@ class FileProcessor:
 
         return sanitized_files
 
-    def generate_signed_url(self, file_name: str):
+    def generate_signed_url(self, file_name: str) -> str:
         """
         Helper function to generate signed URL from a file.
 
@@ -109,7 +113,7 @@ class FileProcessor:
 
         return signed_url
 
-    def upload_files(self):
+    def upload_files(self) -> list[dict]:
         """
         Upload files to cloud storage.
 
@@ -121,6 +125,9 @@ class FileProcessor:
         for file in files:
             file_obj = file.get("file_obj")
             sanitized_name = file.get("sanitized_filename")
+
+            if not file_obj or not sanitized_name:
+                continue
 
             try:
                 blob = self.bucket.blob(sanitized_name)

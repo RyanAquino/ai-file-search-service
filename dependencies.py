@@ -91,7 +91,7 @@ def get_gcp_client(settings: Settings = Depends(get_settings)):
     return get_gcp_storage_client(settings.bucket_name)
 
 
-def get_pinecone_index(settings: Settings = Depends(get_settings)):
+def get_pinecone_index(settings: Settings = Depends(get_settings)) -> Pinecone.Index:
     """
     Get Pinecone index.
 
@@ -111,7 +111,7 @@ def get_pinecone_index(settings: Settings = Depends(get_settings)):
 
 
 @lru_cache
-def get_llm_embedding_client():
+def get_llm_embedding_client() -> OpenAIEmbeddings:
     """Get OpenAI LLM embeddings client"""
     return OpenAIEmbeddings(
         model="text-embedding-ada-002",
@@ -129,6 +129,5 @@ def get_redis_client(settings: Settings = Depends(get_settings)):
         host=settings.redis_host,
         port=settings.redis_port,
         db=settings.redis_cache_db,
-        decode_responses=True,
     )
     return client

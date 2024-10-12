@@ -29,7 +29,7 @@ class AuthOperations:
         self.session = session
         self.settings = settings
 
-    def login(self, request_payload: OAuth2PasswordRequestForm):
+    def login(self, request_payload: OAuth2PasswordRequestForm) -> str:
         """
         Login users endpoint.
 
