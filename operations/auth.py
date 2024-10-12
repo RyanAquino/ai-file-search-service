@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 import jwt
 from fastapi import HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+from loguru import logger
 from passlib.context import CryptContext
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -41,6 +42,8 @@ class AuthOperations:
             .filter(User.username == request_payload.username)
             .first()
         )
+
+        logger.info(f"Logging in user: {request_payload.username}")
 
         if not user:
             raise HTTPException(
@@ -87,6 +90,7 @@ class AuthOperations:
             self.session.commit()
             self.session.refresh(user)
         except IntegrityError as exc:
+            logger.error(f"IntegrityError: {exc}")
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"Username {username} already exists.",

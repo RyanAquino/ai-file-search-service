@@ -6,6 +6,7 @@ from datetime import timedelta
 from fastapi import UploadFile
 from fastapi.exceptions import RequestValidationError
 from google.cloud import exceptions, storage  # type: ignore[attr-defined]
+from loguru import logger
 from werkzeug.utils import secure_filename
 
 from settings import Settings
@@ -107,6 +108,7 @@ class FileProcessor:
         :param file_name: File name
         :return: signed URL
         """
+        logger.info(f"Generating signed URL for file {file_name}")
         blob = self.bucket.blob(file_name)
         expiration_time = timedelta(minutes=self.settings.gcp_storage_exp_minutes)
         signed_url = blob.generate_signed_url(expiration=expiration_time)
@@ -134,6 +136,7 @@ class FileProcessor:
                 blob.upload_from_file(file_obj.file, content_type=file_obj.content_type)
                 presigned_url = self.generate_signed_url(sanitized_name)
             except exceptions.GoogleCloudError as exc:
+                logger.error(f"Exception encountered on GCP service: {exc}")
                 raise exc
 
             presigned_urls.append(

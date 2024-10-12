@@ -1,8 +1,11 @@
 """Semantic search service."""
 
 import json
+import logging
 
 import redis  # type: ignore[import-untyped]
+from fastapi import HTTPException
+from langchain_core.exceptions import LangChainException
 from langchain_openai import OpenAIEmbeddings
 from pinecone import Pinecone
 
@@ -46,7 +49,11 @@ class SemanticSearchService:
             response_data = self.redis_client.get(search_key)
             return json.loads(response_data)  # type:ignore[arg-type]
 
-        term_embedding = self.embedding_client.embed_query(search_term)
+        try:
+            term_embedding = self.embedding_client.embed_query(search_term)
+        except LangChainException as exc:
+            logging.error(f"Exception raised during embedding: {exc}")
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
 
         result = self.pinecone_index.query(
             filter={"file_id": {"$eq": file_id}},

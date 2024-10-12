@@ -72,7 +72,9 @@ class OCRService:
         for url in self.urls:
             filename = self.get_filename_from_url(url)
             ocr_result = self.process_ocr(filename)
+
             if not ocr_result:
+                logger.warning(f"No OCR Results found for file: {filename}")
                 continue
 
             for paragraph in ocr_result.get("paragraphs", []):
@@ -81,6 +83,7 @@ class OCRService:
                 text_file_mappings[paragraph_text] = filename
 
         if not texts:
+            logger.error("No texts extracted from files")
             raise HTTPException(status_code=400, detail="Failed to process OCR")
 
         embeddings = await self.embedding_client.aembed_documents(texts)
