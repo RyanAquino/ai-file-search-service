@@ -26,3 +26,22 @@ services:
       - "6379:6379"
     expose:
       - 6379
+
+  api:
+    container_name: ai-file-search-service
+    build: .
+    ports:
+      - "3000:3000"
+    expose:
+      - 3000
+    environment:
+      DB_URL: postgresql+psycopg2://postgres:1@db:5432/ai_search_service
+      REDIS_HOST: redis
+
+      # Set values
+      GOOGLE_APPLICATION_CREDENTIALS: "credentials.json"
+      PINECONE_API_KEY:
+      OPENAI_API_KEY:
+    depends_on:
+      db:
+        condition: service_healthy
