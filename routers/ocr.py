@@ -16,7 +16,7 @@ router = APIRouter()
 @limiter.limit("10/hour")
 async def process_ocr(
     request: Request,
-    urls: OCRRequestURLs,
+    payload: OCRRequestURLs,
     settings: Settings = Depends(get_settings),
     _=Depends(get_current_user),
     pinecone_index=Depends(get_pinecone_index),
@@ -27,13 +27,15 @@ async def process_ocr(
     embeds texts and saves it to Pinecone vector database.
 
     :param request: Request object required for rate limiting
-    :param urls: list of file URLs to process
+    :param payload: payload of type OCRRequestURLs
     :param settings: Application settings dependency
     :param _: Auth dependency
     :param pinecone_index: Pinecone index dependency
     :param llm_embedding_client: OpenAI llm embedding client dependency
     :return:
     """
-    ocr_service = OCRService(settings, urls.root, pinecone_index, llm_embedding_client)
+    ocr_service = OCRService(
+        settings, payload.urls, pinecone_index, llm_embedding_client
+    )
     await ocr_service.process_urls()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

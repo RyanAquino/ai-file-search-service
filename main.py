@@ -10,15 +10,21 @@ from routers import router
 from settings import get_settings
 
 
-def create_app():
+def create_app(testing=False):
     """
     Create FatAPI application.
 
+    :param testing: Boolean value to set testing mode.
     :return: FastAPI application instance.
     """
     app = FastAPI()
+
+    if testing:
+        limiter.enabled = False
+
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
     app.include_router(router.api_router)
     return app
 
