@@ -10,7 +10,7 @@ class TestOCREmbeddingsAPI:
         "test_input,expected",
         [
             (
-                {"url": "test-url-input"},
+                {"url": "http://test-url-input"},
                 {"detail": "Signed URL must use HTTPS for secure transmission."},
             ),
             (
@@ -26,6 +26,10 @@ class TestOCREmbeddingsAPI:
                     "url": "https://storage.googleapis.com/test-bucket/file.txt?Expires=1"
                 },
                 {"detail": "Invalid signed URL: expired"},
+            ),
+            (
+                {"url": "some random text only"},
+                {"detail": "Given URL is not a valid URL."},
             ),
         ],
     )

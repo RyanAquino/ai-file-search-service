@@ -58,3 +58,8 @@ python main.py
 ```
 http://localhost:3000/docs
 ```
+
+### Running tests
+```
+pytest . -v
+```

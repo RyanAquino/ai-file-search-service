@@ -77,6 +77,28 @@ class OCRService:
 
         return texts
 
+    @staticmethod
+    def format_pinecone_payload(extracted_texts, embeddings, filename) -> list[dict]:
+        """
+        Formats th tests with its embeddings and metadata.
+
+        :param extracted_texts: list of extracted texts type list[str]
+        :param embeddings: list of embeddings
+        :param filename: filename as file_id
+        :return: list of objects ready for pinecone upsert
+        """
+        index_payload = []
+        for txt, embedding in zip(extracted_texts, embeddings):
+            index_payload.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "values": embedding,
+                    "metadata": {"text": txt, "file_id": filename},
+                }
+            )
+
+        return index_payload
+
     async def process_url(self):
         """
         OCR API that processes request payload URLs embeddings asynchronously.
@@ -99,17 +121,9 @@ class OCRService:
             raise HTTPException(status_code=400, detail="No texts extracted from file.")
 
         embeddings = await self.embedding_client.aembed_documents(extracted_texts)
-
-        index_payload = []
-        for txt, embedding in zip(extracted_texts, embeddings):
-
-            index_payload.append(
-                {
-                    "id": str(uuid.uuid4()),
-                    "values": embedding,
-                    "metadata": {"text": txt, "file_id": filename},
-                }
-            )
+        index_payload = self.format_pinecone_payload(
+            extracted_texts, embeddings, filename
+        )
 
         for idx in range(0, len(index_payload), self.settings.embedding_chunk_size):
             self.pinecone_index.upsert(
@@ -128,6 +142,9 @@ class OCRService:
         :return: URL
         """
         parsed_url = urlparse(signed_url)
+
+        if not all([parsed_url.scheme, parsed_url.netloc]):
+            raise RequestValidationError("Given URL is not a valid URL.")
 
         if not signed_url.startswith("https"):
             raise RequestValidationError(
