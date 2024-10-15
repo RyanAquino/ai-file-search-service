@@ -35,7 +35,7 @@ async def process_ocr(
     :return:
     """
     ocr_service = OCRService(
-        settings, payload.urls, pinecone_index, llm_embedding_client
+        settings, payload.url, pinecone_index, llm_embedding_client
     )
-    await ocr_service.process_urls()
+    await ocr_service.process_url()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

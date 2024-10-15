@@ -1,5 +1,7 @@
 """API Requests module."""
 
+from datetime import datetime, timedelta
+
 from pydantic import BaseModel, Field
 
 
@@ -13,17 +15,15 @@ class UserRegisterRequest(BaseModel):
 class OCRRequestURLs(BaseModel):
     """OCR API request URLs model."""
 
-    urls: list[str] = Field(default_factory=list)
+    url: str
 
     model_config = {
         "json_schema_extra": {
             "examples": [
                 {
-                    "urls": [
-                        "https://storage.googleapis.com/ai-file-search-service_new-bucket/"
-                        "建築基準法施行令.json?"
-                        "Expires=1728795108",
-                    ]
+                    "url": "https://storage.googleapis.com/ai-file-search-service_new-bucket/"
+                    "建築基準法施行令.json?"
+                    f"Expires={(datetime.now() + timedelta(days=5)).timestamp()}",
                 }
             ]
         }

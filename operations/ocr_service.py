@@ -21,7 +21,7 @@ class OCRService:
     def __init__(
         self,
         settings: Settings,
-        urls: list[str],
+        url: str,
         pinecone_index: Pinecone.Index,
         embedding_client: OpenAIEmbeddings,
     ):
@@ -33,7 +33,7 @@ class OCRService:
         :param pinecone_index: Pinecone index dependency
         :param embedding_client: OpenAI embedding dependency
         """
-        self.urls = urls
+        self.url = url
         self.settings = settings
         self.embedding_client = embedding_client
         self.pinecone_index = pinecone_index
@@ -60,7 +60,7 @@ class OCRService:
 
         return ocr_results
 
-    async def process_urls(self):
+    async def process_url(self):
         """
         OCR API that processes request payload URLs embeddings asynchronously.
 
@@ -69,21 +69,23 @@ class OCRService:
         texts = []
         text_file_mappings = {}
 
-        for url in self.urls:
-            filename = self.get_filename_from_url(url)
-            ocr_result = self.process_ocr(filename)
+        filename = self.get_filename_from_url(self.url)
+        ocr_result = self.process_ocr(filename)
 
-            if not ocr_result:
-                logger.warning(f"No OCR Results found for file: {filename}")
-                continue
+        if not ocr_result:
+            logger.warning(f"No OCR Results found for file: {filename}")
+            raise HTTPException(
+                status_code=404, detail=f"No OCR Results found for file: {filename}"
+            )
 
-            for paragraph in ocr_result.get("paragraphs", []):
-                paragraph_text = paragraph.get("content")
+        for paragraph in ocr_result.get("paragraphs", []):
+            paragraph_text = paragraph.get("content")
+            if paragraph_text:
                 texts.append(paragraph_text)
                 text_file_mappings[paragraph_text] = filename
 
         if not texts:
-            logger.error("No texts extracted from files")
+            logger.error("No texts extracted from file")
             raise HTTPException(status_code=400, detail="Failed to process OCR")
 
         embeddings = await self.embedding_client.aembed_documents(texts)
