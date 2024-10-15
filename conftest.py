@@ -1,3 +1,5 @@
+"""Configuration tests module."""
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -25,6 +27,8 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 
 def override_gcp_client():
+    """Overridden gcp_client app dependency."""
+
     class MockGCPClient:
         project = "test-project"
 
@@ -46,6 +50,8 @@ def override_gcp_client():
 
 
 def override_get_pinecone_index():
+    """Overridden get_pinecone_index app dependency."""
+
     class MockPineconeIndex:
 
         @staticmethod
@@ -56,6 +62,8 @@ def override_get_pinecone_index():
 
 
 def override_get_llm_embedding_client():
+    """Overridden get_llm_embedding_client app dependency."""
+
     class MockOpenAIEmbeddings:
 
         @staticmethod
@@ -66,6 +74,8 @@ def override_get_llm_embedding_client():
 
 
 def override_get_settings():
+    """Overridden get_settings app dependency."""
+
     class MockSettings:
         bucket_name = "test-bucket"
         token_exp_minutes = 15
@@ -85,6 +95,8 @@ def override_get_settings():
 
 @pytest.fixture
 def db_session():
+    """Database session fixture."""
+
     Base.metadata.create_all(bind=engine)
     session = TestingSessionLocal()
     try:
@@ -96,6 +108,11 @@ def db_session():
 
 @pytest.fixture
 def client(db_session):
+    """
+    Not logged in client fixture
+    :param db_session: fixture dependency of mock database session
+    """
+
     def override_get_db():
         yield db_session
 
@@ -108,6 +125,11 @@ def client(db_session):
 
 @pytest.fixture
 def login_client(db_session):
+    """
+    Login client fixture.
+    :param db_session: fixture dependency of mock database session
+    """
+
     def override_get_db():
         yield db_session
 

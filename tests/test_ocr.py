@@ -53,7 +53,7 @@ class TestOCREmbeddingsAPI:
         )
 
         assert response.status_code == 400
-        assert response.json() == {"detail": "Failed to process OCR"}
+        assert response.json() == {"detail": "No texts extracted from file."}
 
     @patch(
         "operations.ocr_service.OCRService.process_ocr",

@@ -1,10 +1,19 @@
+"""Test Auth module."""
+
 from passlib.context import CryptContext
 
 from models.user import User
 
 
 class TestAuthAPI:
+    """Test Auth API."""
+
     def test_login_no_user(self, client):
+        """
+        Test login with no user.
+
+        :param client: Fixture client
+        """
         response = client.post(
             "/api/v1/login", data={"username": "no-user", "password": "no-pass"}
         )
@@ -12,6 +21,12 @@ class TestAuthAPI:
         assert response.json() == {"detail": "User no-user not found."}
 
     def test_login_success_user(self, client, db_session):
+        """
+        Test login with success user.
+
+        :param client: fixture client
+        :param db_session: fixture mock database session
+        """
         pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         user = User(
             username="sample-user", hashed_password=pwd_context.hash("sample-password")

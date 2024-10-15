@@ -29,7 +29,7 @@ class OCRService:
         Inject class dependencies.
 
         :param settings: Application settings
-        :param urls: request payload URLs
+        :param url: request payload URL to be processed
         :param pinecone_index: Pinecone index dependency
         :param embedding_client: OpenAI embedding dependency
         """
@@ -60,49 +60,54 @@ class OCRService:
 
         return ocr_results
 
+    @staticmethod
+    def get_ocr_texts_results(ocr_result: dict) -> list[str]:
+        """
+        Retrieve OCR texts results from response.
+
+        :param ocr_result: OCR result from `ocr` directory
+        :return: list of texts
+        """
+        texts = []
+
+        for paragraph in ocr_result.get("paragraphs", []):
+            paragraph_text = paragraph.get("content")
+            if paragraph_text:
+                texts.append(paragraph_text)
+
+        return texts
+
     async def process_url(self):
         """
         OCR API that processes request payload URLs embeddings asynchronously.
 
         :return: None
         """
-        texts = []
-        text_file_mappings = {}
-
         filename = self.get_filename_from_url(self.url)
         ocr_result = self.process_ocr(filename)
 
         if not ocr_result:
             logger.warning(f"No OCR Results found for file: {filename}")
             raise HTTPException(
-                status_code=404, detail=f"No OCR Results found for file: {filename}"
+                status_code=404, detail="No OCR Results found for given file"
             )
 
-        for paragraph in ocr_result.get("paragraphs", []):
-            paragraph_text = paragraph.get("content")
-            if paragraph_text:
-                texts.append(paragraph_text)
-                text_file_mappings[paragraph_text] = filename
+        extracted_texts = self.get_ocr_texts_results(ocr_result)
 
-        if not texts:
+        if not extracted_texts:
             logger.error("No texts extracted from file")
-            raise HTTPException(status_code=400, detail="Failed to process OCR")
+            raise HTTPException(status_code=400, detail="No texts extracted from file.")
 
-        embeddings = await self.embedding_client.aembed_documents(texts)
+        embeddings = await self.embedding_client.aembed_documents(extracted_texts)
 
         index_payload = []
-        for txt, embedding in zip(texts, embeddings):
-
-            file_id = text_file_mappings.get(txt)
-            if not file_id:
-                logger.warning(f"Text {txt} not found on any file")
-                continue
+        for txt, embedding in zip(extracted_texts, embeddings):
 
             index_payload.append(
                 {
                     "id": str(uuid.uuid4()),
                     "values": embedding,
-                    "metadata": {"text": txt, "file_id": file_id},
+                    "metadata": {"text": txt, "file_id": filename},
                 }
             )
 
