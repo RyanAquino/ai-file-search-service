@@ -1,5 +1,6 @@
 """Configuration tests module."""
 
+import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -58,6 +59,10 @@ def override_get_pinecone_index():
         def upsert(*args, **kwargs):
             return None
 
+        @staticmethod
+        def query(*args, **kwargs):
+            return {}
+
     return MockPineconeIndex()
 
 
@@ -68,9 +73,29 @@ def override_get_llm_embedding_client():
 
         @staticmethod
         async def aembed_documents(texts):
-            return [[1, 2, 3, 4, 5]]
+            return [np.random.rand(1536)]
+
+        @staticmethod
+        def embed_query(text):
+            return np.random.rand(1536)
 
     return MockOpenAIEmbeddings()
+
+
+def override_get_redis_client():
+    """Overridden get_redis_client app dependency."""
+
+    class MockRedisClient:
+
+        @staticmethod
+        def get(key):
+            return None
+
+        @staticmethod
+        def set(*args, **kwargs):
+            return None
+
+    return MockRedisClient()
 
 
 def override_get_settings():
@@ -89,6 +114,7 @@ def override_get_settings():
         pinecone_api_key = ""
         embedding_chunk_size = 200
         embedding_namespace = "sample-embedding-name-space"
+        redis_cache_exp = 15
 
     return MockSettings()
 
@@ -116,7 +142,7 @@ def client(db_session):
     def override_get_db():
         yield db_session
 
-    app = create_app(testing=True)
+    app = create_app(disable_limiter=True)
     app.dependency_overrides[get_db_session] = override_get_db
     app.dependency_overrides[get_settings] = override_get_settings
     with TestClient(app) as test_client:
@@ -133,13 +159,13 @@ def login_client(db_session):
     def override_get_db():
         yield db_session
 
-    app = create_app(testing=True)
+    app = create_app(disable_limiter=True)
     app.dependency_overrides[get_db_session] = override_get_db
     app.dependency_overrides[get_current_user] = lambda: None
     app.dependency_overrides[get_settings] = override_get_settings
     app.dependency_overrides[get_gcp_client] = override_gcp_client
     app.dependency_overrides[get_pinecone_index] = override_get_pinecone_index
-    app.dependency_overrides[get_redis_client] = lambda: None
+    app.dependency_overrides[get_redis_client] = override_get_redis_client
     app.dependency_overrides[get_llm_embedding_client] = (
         override_get_llm_embedding_client
     )

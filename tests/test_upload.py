@@ -1,5 +1,7 @@
 """Test Upload API module."""
 
+from unittest.mock import Mock
+
 import pytest
 
 from settings import get_settings
@@ -41,15 +43,12 @@ class TestUploadAPI:
         :param tmp_path: builtin temporary file path fixture
         """
         test_client, app = login_client
+        mock_settings = Mock(
+            bucket_name="test-bucket",
+            max_file_upload_count=5,
+        )
 
-        def override_settings():
-            class MockSettings:
-                bucket_name = "test-bucket"
-                max_file_upload_count = 5
-
-            return MockSettings()
-
-        app.dependency_overrides[get_settings] = override_settings
+        app.dependency_overrides[get_settings] = lambda: mock_settings
 
         files = [
             (
@@ -109,15 +108,10 @@ class TestUploadAPI:
         """
         test_client, app = login_client
 
-        def override_settings():
-            class MockSettings:
-                bucket_name = "test-bucket"
-                max_file_bytes_size = 1
-                max_file_upload_count = 5
-
-            return MockSettings()
-
-        app.dependency_overrides[get_settings] = override_settings
+        mock_settings = Mock(
+            bucket_name="test-bucket", max_file_bytes_size=5, max_file_upload_count=5
+        )
+        app.dependency_overrides[get_settings] = lambda: mock_settings
 
         files = [
             (

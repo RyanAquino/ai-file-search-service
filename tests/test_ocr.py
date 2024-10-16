@@ -1,3 +1,5 @@
+"""Test OCR API module."""
+
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
@@ -5,6 +7,7 @@ import pytest
 
 
 class TestOCREmbeddingsAPI:
+    """Test OCR API class."""
 
     @pytest.mark.parametrize(
         "test_input,expected",
@@ -34,6 +37,13 @@ class TestOCREmbeddingsAPI:
         ],
     )
     def test_invalid_filename_urls(self, test_input, expected, login_client):
+        """
+        Test invalid filename scenarios.
+
+        :param test_input: parametrize test input
+        :param expected: parametrize test expected output
+        :param login_client: login client fixture
+        """
         test_client, _ = login_client
 
         response = test_client.post("api/v1/ocr", json=test_input)
@@ -46,6 +56,11 @@ class TestOCREmbeddingsAPI:
         lambda *args: {"paragraphs": [{"content": ""}]},
     )
     def test_no_texts_extracted(self, login_client):
+        """
+        Tests no text extracted from a mock file.
+
+        :param login_client: login client fixture
+        """
         test_client, _ = login_client
 
         future_ts = (datetime.now() + timedelta(days=1)).timestamp()
@@ -64,6 +79,11 @@ class TestOCREmbeddingsAPI:
         lambda *args: {"paragraphs": [{"content": "Sample paragraph content!"}]},
     )
     def test_valid_texts_extracted_and_saved(self, login_client):
+        """
+        Tests valid input with text extracted from a mock file.
+
+        :param login_client: login client fixture
+        """
         test_client, _ = login_client
 
         future_ts = (datetime.now() + timedelta(days=1)).timestamp()

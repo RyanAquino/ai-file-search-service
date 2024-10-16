@@ -20,13 +20,13 @@ def session_factory(settings: Settings = Depends(get_settings)):
     return sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-def get_db_session(Session: sessionmaker = Depends(session_factory)):
+def get_db_session(session: sessionmaker = Depends(session_factory)):
     """
     Retrieve database session.
 
     :yield: Database session
     """
-    db = Session()
+    db = session()
     try:
         yield db
     finally:

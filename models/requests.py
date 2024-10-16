@@ -12,6 +12,13 @@ class UserRegisterRequest(BaseModel):
     password: str = Field(default=..., description="Password")
 
 
+class ExtractRequest(BaseModel):
+    """Extract API request model."""
+
+    query_text: str = Field(default=..., description="Query texts")
+    file_id: str = Field(default=..., description="File id")
+
+
 class OCRRequestURLs(BaseModel):
     """OCR API request URLs model."""
 

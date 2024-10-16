@@ -10,16 +10,16 @@ from routers import router
 from settings import get_settings
 
 
-def create_app(testing=False):
+def create_app(disable_limiter=False):
     """
     Create FatAPI application.
 
-    :param testing: Boolean value to set testing mode.
+    :param disable_limiter: Boolean value to enable/disable rate limiting.
     :return: FastAPI application instance.
     """
     app = FastAPI()
 
-    if testing:
+    if disable_limiter:
         limiter.enabled = False
 
     app.state.limiter = limiter
