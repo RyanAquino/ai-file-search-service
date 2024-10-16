@@ -27,7 +27,7 @@ class UserToken(BaseModel):
 class UserRegisterResponse(BaseModel):
     """User Register Response model."""
 
-    id: int
+    id: str
     username: str
 
 

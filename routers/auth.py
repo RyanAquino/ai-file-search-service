@@ -1,6 +1,6 @@
 """Auth module."""
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
@@ -35,7 +35,7 @@ def login(
     return TokenResponse(access_token=token)
 
 
-@router.post("/register")
+@router.post("/register", status_code=status.HTTP_201_CREATED)
 def register(
     request_payload: UserRegisterRequest,
     session: Session = Depends(get_db_session),
@@ -53,4 +53,4 @@ def register(
     auth = AuthOperations(session, settings, pwd_context)
     user = auth.register(request_payload.username, request_payload.password)
 
-    return UserRegisterResponse(id=user.id, username=user.username)
+    return UserRegisterResponse(id=str(user.id), username=user.username)  # type: ignore[arg-type]

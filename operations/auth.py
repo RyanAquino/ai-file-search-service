@@ -72,7 +72,7 @@ class AuthOperations:
 
         return encoded_jwt
 
-    def register(self, username: str, password: str):
+    def register(self, username: str, password: str) -> User:
         """
         Register Users.
 
@@ -96,4 +96,4 @@ class AuthOperations:
                 detail=f"Username {username} already exists.",
             ) from exc
 
-        return User(username=username, id=user.id)
+        return user
