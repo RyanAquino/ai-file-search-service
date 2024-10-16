@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from database import get_db_session
 from models.user import User
 from settings import Settings, get_settings
+from rq import Queue
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login")
 
@@ -131,3 +132,7 @@ def get_redis_client(settings: Settings = Depends(get_settings)):
         db=settings.redis_cache_db,
     )
     return client
+
+
+def get_redis_rq_client(redis_client: redis.Redis = Depends(get_redis_client)):
+    return Queue("default", connection=redis_client)

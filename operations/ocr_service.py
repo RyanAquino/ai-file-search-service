@@ -1,6 +1,7 @@
 """OCR Service module."""
 
 import json
+import os
 import time
 import uuid
 from pathlib import Path
@@ -13,6 +14,7 @@ from loguru import logger
 from pinecone import Pinecone
 
 from settings import Settings
+from dependencies import get_llm_embedding_client, get_pinecone_index
 
 
 class OCRService:
@@ -24,6 +26,7 @@ class OCRService:
         url: str,
         pinecone_index: Pinecone.Index,
         embedding_client: OpenAIEmbeddings,
+        task_queue
     ):
         """
         Inject class dependencies.
@@ -37,6 +40,7 @@ class OCRService:
         self.settings = settings
         self.embedding_client = embedding_client
         self.pinecone_index = pinecone_index
+        self.task_queue = task_queue
 
     @staticmethod
     def process_ocr(filename: str) -> dict:
@@ -120,18 +124,30 @@ class OCRService:
             logger.error("No texts extracted from file")
             raise HTTPException(status_code=400, detail="No texts extracted from file.")
 
-        embeddings = await self.embedding_client.aembed_documents(extracted_texts)
-        index_payload = self.format_pinecone_payload(
+        self.task_queue.enqueue(OCRService.embed_and_save_job, extracted_texts, filename, self.settings)
+        # OCRService.embed_and_save_job(extracted_texts, filename, self.settings)
+
+    @staticmethod
+    def embed_and_save_job(extracted_texts: list[str], filename: str, settings: Settings) -> None:
+        os.environ["OPENAI_API_KEY"] = settings.openai_api_key
+
+        embedding_client = get_llm_embedding_client()
+        pinecone_index = get_pinecone_index(settings)
+
+        logger.info("Embedding texts...")
+        embeddings = embedding_client.embed_documents(extracted_texts)
+
+        index_payload = OCRService.format_pinecone_payload(
             extracted_texts, embeddings, filename
         )
 
-        for idx in range(0, len(index_payload), self.settings.embedding_chunk_size):
-            self.pinecone_index.upsert(
+        logger.info("Upserting to database")
+        for idx in range(0, len(index_payload), settings.embedding_chunk_size):
+            pinecone_index.upsert(
                 vectors=index_payload[
-                    idx : idx + self.settings.embedding_chunk_size - 1
-                ],
-                namespace=self.settings.embedding_namespace,
-                async_req=True,
+                        idx: idx + settings.embedding_chunk_size - 1
+                        ],
+                namespace=settings.embedding_namespace,
             )
 
     def get_filename_from_url(self, signed_url: str) -> str:
