@@ -1,9 +1,8 @@
 # AI File Search Service
-A file search service that embeds file URLs texts and allows similarity search
+A file search service that performs OCR on files and embeds the text to enable similarity searches.
 
 ### Requirements
 - Python 3
-- Docker
 - Docker-compose
 - Google Cloud Storage API
 - OpenAI API
@@ -27,17 +26,18 @@ API endpoints documentation also available upon running - http://localhost:3000/
 | `POST` | (Mock endpoint) <br>            `/api/v1/ocr` | Perform a mock OCR on files, embeds and saves the embedding to Pinecone vector database. <br><br> Make sure that the OCR filename in the URL matches the one in `ocr` results directory | `{"url": "https://storage.googleapis.com/ai-file-search-service_new-bucket/建築基準法施行令.json?Expires=1728795108"}` | 
 | `POST` |               `/api/v1/extract`               | Extract relevant parts from given file id and query text                                                                                                                                |                               `{"query_text": "建物", "file_id": "建築基準法施行令.json"}`                               | 
 ---
-### Setup servers with Docker
+### Setup with Docker
 ##### Copy google credentials to app root as `credentials.json`
 ```
 cp <path-to-your-credentials> credentials.json
 ```
 
-##### Set necessary env variables on docker-compose.yaml
+##### Set necessary environment variables on docker-compose.yaml
 ```
-...
-PINECONE_API_KEY=
-OPENAI_API_KEY=
+api:
+    ...
+    PINECONE_API_KEY=
+    OPENAI_API_KEY=
 ```
 ##### Set OCR Results - Make sure there are mock OCR results present in `ocr` directory
 ##### Run servers
@@ -49,6 +49,10 @@ docker-compose up -d
 ##### Create `.env` and adjust based on needs
 ```
 cp .env.example .env
+```
+##### Install dependencies
+```
+pip install -r requirements.txt
 ```
 ##### Run server
 ```

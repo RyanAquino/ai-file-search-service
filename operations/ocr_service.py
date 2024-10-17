@@ -120,11 +120,13 @@ class OCRService:
             logger.error("No texts extracted from file")
             raise HTTPException(status_code=400, detail="No texts extracted from file.")
 
+        logger.info("Embedding extracted texts...")
         embeddings = await self.embedding_client.aembed_documents(extracted_texts)
         index_payload = self.format_pinecone_payload(
             extracted_texts, embeddings, filename
         )
 
+        logger.info("Saving vectors to database...")
         for idx in range(0, len(index_payload), self.settings.embedding_chunk_size):
             self.pinecone_index.upsert(
                 vectors=index_payload[
