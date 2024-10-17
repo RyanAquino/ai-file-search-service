@@ -1,5 +1,8 @@
+"""Main router module."""
+
 from fastapi import APIRouter
-from routers import extract, ocr, upload, auth
+
+from routers import auth, extract, ocr, upload
 
 api_router = APIRouter(prefix="/api/v1")
 

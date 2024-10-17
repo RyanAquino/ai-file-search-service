@@ -1,0 +1,8 @@
+.env
+.env.example
+mypy.ini
+.flake8
+README.md
+.venv
+venv
+.github

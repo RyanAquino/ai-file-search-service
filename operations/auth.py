@@ -1,27 +1,49 @@
-from fastapi import HTTPException
-from fastapi.security import OAuth2PasswordRequestForm
-from passlib.context import CryptContext
-from sqlalchemy.orm import Session
-from datetime import datetime, timezone, timedelta
+"""Auth operations module."""
 
-from models.response import UserToken, TokenResponse
-from models.user import User
-from sqlalchemy.exc import IntegrityError
-from fastapi import status
+from datetime import datetime, timedelta, timezone
 
-from settings import Settings
 import jwt
+from fastapi import HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
+from loguru import logger
+from passlib.context import CryptContext
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from models.response import UserToken
+from models.user import User
+from settings import Settings
 
 
 class AuthOperations:
+    """Auth operations class."""
 
     def __init__(self, session: Session, settings: Settings, pwd_context: CryptContext):
+        """
+        Inject class dependencies.
+
+        :param session: Database session
+        :param settings: Application settings
+        :param pwd_context: Auth CryptContext
+        """
         self.pwd_context = pwd_context
         self.session = session
         self.settings = settings
 
-    def login(self, request_payload: OAuth2PasswordRequestForm):
-        user = self.session.query(User).filter(User.username == request_payload.username).first()
+    def login(self, request_payload: OAuth2PasswordRequestForm) -> str:
+        """
+        Login users endpoint.
+
+        :param request_payload: OAuth2PasswordRequestForm - username and password
+        :return: JWT token
+        """
+        user = (
+            self.session.query(User)
+            .filter(User.username == request_payload.username)
+            .first()
+        )
+
+        logger.info(f"Logging in user: {request_payload.username}")
 
         if not user:
             raise HTTPException(
@@ -48,9 +70,16 @@ class AuthOperations:
             algorithm=self.settings.jwt_algorithm,
         )
 
-        return TokenResponse(access_token=encoded_jwt)
+        return encoded_jwt
 
-    def register(self, username: str, password: str):
+    def register(self, username: str, password: str) -> User:
+        """
+        Register Users.
+
+        :param username: user name
+        :param password: password
+        :return: User object with username and ID
+        """
         hashed_pw = self.pwd_context.hash(password)
         try:
             user = User(
@@ -60,10 +89,11 @@ class AuthOperations:
             self.session.add(user)
             self.session.commit()
             self.session.refresh(user)
-        except IntegrityError:
+        except IntegrityError as exc:
+            logger.error(f"IntegrityError: {exc}")
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"Username {username} already exists.",
-            )
+            ) from exc
 
-        return User(username=username, id=user.id)
+        return user
