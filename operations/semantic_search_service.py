@@ -75,8 +75,9 @@ class SemanticSearchService:
                 }
             )
 
-        self.redis_client.set(
-            search_key, json.dumps(match_texts), ex=self.settings.redis_cache_exp
-        )
+        if match_texts:
+            self.redis_client.set(
+                search_key, json.dumps(match_texts), ex=self.settings.redis_cache_exp
+            )
 
         return match_texts
