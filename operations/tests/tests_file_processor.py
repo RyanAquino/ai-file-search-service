@@ -1,3 +1,5 @@
+"""Test FileProcessor module."""
+
 import os
 
 from fastapi import UploadFile
@@ -7,6 +9,11 @@ from operations.file_processor import FileProcessor
 
 
 def test_sanitize_file_names(tmp_path):
+    """
+    Test sanitize file name.
+
+    :param tmp_path: temporary path fixture
+    """
     temp_filename = "hello.txt"
     with open(os.path.join(tmp_path, temp_filename), "wb") as file:
         file.write(b"test content")

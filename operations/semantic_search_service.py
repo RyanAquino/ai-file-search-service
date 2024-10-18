@@ -52,7 +52,7 @@ class SemanticSearchService:
         try:
             term_embedding = self.embedding_client.embed_query(search_term)
         except LangChainException as exc:
-            logging.error(f"Exception raised during embedding: {exc}")
+            logging.error("Exception raised during embedding: %s", exc)
             raise HTTPException(status_code=503, detail=str(exc)) from exc
 
         result = self.pinecone_index.query(
