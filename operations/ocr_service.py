@@ -103,7 +103,7 @@ class OCRService:
 
         return index_payload
 
-    async def process_url(self):
+    def process_url(self):
         """
         OCR API that processes request payload URLs embeddings asynchronously.
 

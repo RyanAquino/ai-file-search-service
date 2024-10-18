@@ -14,7 +14,7 @@ router = APIRouter()
 @router.post("/ocr", status_code=status.HTTP_204_NO_CONTENT)
 @limiter.limit("5/minute")
 @limiter.limit("10/hour")
-async def process_ocr(
+def process_ocr(
     request: Request,
     background_tasks: BackgroundTasks,
     payload: OCRRequestURLs,
@@ -39,5 +39,5 @@ async def process_ocr(
     ocr_service = OCRService(
         settings, payload.url, pinecone_index, llm_embedding_client, background_tasks
     )
-    await ocr_service.process_url()
+    ocr_service.process_url()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
