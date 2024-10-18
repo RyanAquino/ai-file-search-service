@@ -24,17 +24,19 @@ class Settings(BaseSettings):
     token_exp_minutes: float = Field(default=60, alias="TOKEN_EXPIRE_MINUTES")
     jwt_secret_key: Optional[str] = Field(default="secret-key", alias="JWT_SECRET_KEY")
     jwt_algorithm: Optional[str] = Field(default="HS256", alias="JWT_ALGORITHM")
-    gcp_creds: str = Field(default="gcp creds", alias="GOOGLE_APPLICATION_CREDENTIALS")
+    gcp_creds: str = Field(
+        default="credentials.json", alias="GOOGLE_APPLICATION_CREDENTIALS"
+    )
     bucket_name: str = Field(default="new-bucket", alias="BUCKET_NAME")
     gcp_storage_exp_minutes: float = Field(default=15, alias="STORAGE_EXPIRE_MINUTES")
     pinecone_api_key: str = Field(default="key", alias="PINECONE_API_KEY")
-    pinecone_index_name: Optional[str] = Field(
-        default="ai-file-search-service-index", alias="PINECONE_INDEX_NAME"
-    )
+    pinecone_host: str = Field(default="host", alias="PINECONE_HOST")
+    pinecone_pool_count: int = Field(default=1, alias="PINECONE_POOL_COUNT")
     openai_api_key: str = Field(default="key", alias="OPENAI_API_KEY")
-    embedding_chunk_size: Optional[int] = Field(
-        default=200, alias="EMBEDDING_CHUNK_SIZE"
+    openai_embeddings_model: str = Field(
+        default="text-embedding-ada-002", alias="OPENAI_EMBEDDING_MODEL"
     )
+    embedding_chunk_size: int = Field(default=200, alias="EMBEDDING_CHUNK_SIZE")
     embedding_namespace: Optional[str] = Field(
         default="paragraphs", alias="EMBEDDING_NAMESPACE"
     )

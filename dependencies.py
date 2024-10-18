@@ -9,7 +9,8 @@ from fastapi.security import OAuth2PasswordBearer
 from google.cloud import storage  # type: ignore[attr-defined]
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from langchain_openai import OpenAIEmbeddings
-from pinecone import Pinecone, ServerlessSpec
+from pinecone import Pinecone
+from pinecone.grpc import PineconeGRPC
 from sqlalchemy.orm import Session
 
 from database import get_db_session
@@ -98,23 +99,18 @@ def get_pinecone_index(settings: Settings = Depends(get_settings)) -> Pinecone.I
     :param settings: Application settings dependency
     :return: Pinecone index instance
     """
-    pc = Pinecone(api_key=settings.pinecone_api_key, pool_threads=30)
-    if not pc.has_index(settings.pinecone_index_name):
-        pc.create_index(
-            name=settings.pinecone_index_name,
-            dimension=1536,
-            metric="cosine",
-            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-        )
-
-    return pc.Index(settings.pinecone_index_name)
+    pc = PineconeGRPC(
+        api_key=settings.pinecone_api_key, pool_threads=settings.pinecone_pool_count
+    )
+    return pc.Index(host=settings.pinecone_host)
 
 
-@lru_cache
-def get_llm_embedding_client() -> OpenAIEmbeddings:
+def get_llm_embedding_client(
+    settings: Settings = Depends(get_settings),
+) -> OpenAIEmbeddings:
     """Get OpenAI LLM embeddings client"""
     return OpenAIEmbeddings(
-        model="text-embedding-ada-002",
+        model=settings.openai_embeddings_model,
     )
 
 

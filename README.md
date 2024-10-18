@@ -36,8 +36,9 @@ cp <path-to-your-credentials> credentials.json
 ```
 api:
     ...
-    PINECONE_API_KEY=
-    OPENAI_API_KEY=
+    PINECONE_API_KEY:
+    PINECONE_HOST:
+    OPENAI_API_KEY: 
 ```
 ##### Set OCR Results - Make sure there are mock OCR results present in `ocr` directory
 ##### Run servers

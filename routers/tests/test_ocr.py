@@ -78,12 +78,15 @@ class TestOCREmbeddingsAPI:
         "operations.ocr_service.OCRService.process_ocr",
         lambda *args: {"paragraphs": [{"content": "Sample paragraph content!"}]},
     )
-    def test_valid_texts_extracted_and_saved(self, login_client):
+    @patch("fastapi.background.BackgroundTasks.add_task")
+    def test_valid_texts_extracted_and_saved(self, add_task_mock, login_client):
         """
         Tests valid input with text extracted from a mock file.
 
         :param login_client: login client fixture
         """
+        add_task_mock.return_value = lambda *args: None
+
         test_client, _ = login_client
 
         future_ts = (datetime.now() + timedelta(days=1)).timestamp()
@@ -95,3 +98,4 @@ class TestOCREmbeddingsAPI:
         )
         assert response.status_code == 204
         assert response.content == b""
+        assert add_task_mock.call_count == 1
