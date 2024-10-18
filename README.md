@@ -40,7 +40,10 @@ api:
     PINECONE_HOST:
     OPENAI_API_KEY: 
 ```
-##### Set OCR Results - Make sure there are mock OCR results present in `ocr` directory
+##### Copy mock OCR JSON results to `ocr` directory
+```
+cp ocr/* <root app directory>/ocr/
+```
 ##### Run servers
 ```
 docker-compose up -d
@@ -63,7 +66,7 @@ python main.py
 ```
 http://localhost:3000/docs
 ```
-
+---
 ### Running tests
 ```
 pytest . -v
