@@ -1,6 +1,6 @@
 """OCR API Endpoint module."""
 
-from fastapi import APIRouter, Depends, Request, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response, status
 
 from dependencies import get_current_user, get_llm_embedding_client, get_pinecone_index
 from models.requests import OCRRequestURLs
@@ -16,6 +16,7 @@ router = APIRouter()
 @limiter.limit("10/hour")
 async def process_ocr(
     request: Request,
+    background_tasks: BackgroundTasks,
     payload: OCRRequestURLs,
     settings: Settings = Depends(get_settings),
     _=Depends(get_current_user),
@@ -26,6 +27,7 @@ async def process_ocr(
     A mock OCR endpoint that processes OCR results
     embeds texts and saves it to Pinecone vector database.
 
+    :param background_tasks: dependency for background tasks
     :param request: Request object required for rate limiting
     :param payload: payload of type OCRRequestURLs
     :param settings: Application settings dependency
@@ -35,7 +37,7 @@ async def process_ocr(
     :return:
     """
     ocr_service = OCRService(
-        settings, payload.url, pinecone_index, llm_embedding_client
+        settings, payload.url, pinecone_index, llm_embedding_client, background_tasks
     )
     await ocr_service.process_url()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

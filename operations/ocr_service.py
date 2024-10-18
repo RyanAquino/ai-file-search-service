@@ -1,13 +1,15 @@
 """OCR Service module."""
 
+import asyncio
 import json
 import time
 import uuid
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from fastapi import HTTPException
+from fastapi import BackgroundTasks, HTTPException
 from fastapi.exceptions import RequestValidationError
+from langchain_core.exceptions import LangChainException
 from langchain_openai import OpenAIEmbeddings
 from loguru import logger
 from pinecone import Pinecone
@@ -24,6 +26,7 @@ class OCRService:
         url: str,
         pinecone_index: Pinecone.Index,
         embedding_client: OpenAIEmbeddings,
+        background_tasks: BackgroundTasks,
     ):
         """
         Inject class dependencies.
@@ -37,6 +40,7 @@ class OCRService:
         self.settings = settings
         self.embedding_client = embedding_client
         self.pinecone_index = pinecone_index
+        self.background_task = background_tasks
 
     @staticmethod
     def process_ocr(filename: str) -> dict:
@@ -120,21 +124,47 @@ class OCRService:
             logger.error("No texts extracted from file")
             raise HTTPException(status_code=400, detail="No texts extracted from file.")
 
-        logger.info("Embedding extracted texts...")
-        embeddings = await self.embedding_client.aembed_documents(extracted_texts)
-        index_payload = self.format_pinecone_payload(
+        self.background_task.add_task(self.embed_save_job, extracted_texts, filename)
+
+    async def embed_save_job(self, extracted_texts: list[str], filename: str):
+        """
+        Embeds the extracted texts and save it to a pinecone vector database asynchronously.
+
+        :param extracted_texts: list of extracted texts type list[str]
+        :param filename: filename
+        :return: None
+        """
+
+        try:
+            logger.info("Embedding extracted texts...")
+            embeddings = await self.embedding_client.aembed_documents(extracted_texts)
+        except LangChainException as exc:
+            logger.error("Exception while embedding extracted texts: %s", exc)
+            return
+
+        index_payload = OCRService.format_pinecone_payload(
             extracted_texts, embeddings, filename
         )
 
-        logger.info("Saving vectors to database...")
+        logger.info("Upserting to database")
+        async_results = []
         for idx in range(0, len(index_payload), self.settings.embedding_chunk_size):
-            self.pinecone_index.upsert(
-                vectors=index_payload[
-                    idx : idx + self.settings.embedding_chunk_size - 1
-                ],
-                namespace=self.settings.embedding_namespace,
-                async_req=True,
+            async_results.append(
+                self.pinecone_index.upsert(
+                    vectors=index_payload[
+                        idx : idx + self.settings.embedding_chunk_size - 1
+                    ],
+                    namespace=self.settings.embedding_namespace,
+                    async_req=True,
+                )
             )
+
+        logger.info("Waiting for async task results...")
+        response = await asyncio.gather(
+            *(asyncio.to_thread(async_result.result) for async_result in async_results)
+        )
+        logger.info(response)
+        logger.info("Done processing job")
 
     def get_filename_from_url(self, signed_url: str) -> str:
         """

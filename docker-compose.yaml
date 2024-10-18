@@ -13,6 +13,7 @@ services:
       # Set values
       GOOGLE_APPLICATION_CREDENTIALS: "credentials.json"
       PINECONE_API_KEY:
+      PINECONE_HOST:
       OPENAI_API_KEY:
     depends_on:
       db:

@@ -1,5 +1,7 @@
 """Test OCR module."""
 
+from unittest.mock import Mock
+
 from conftest import (
     override_get_llm_embedding_client,
     override_get_pinecone_index,
@@ -13,11 +15,16 @@ class TestOCRService:
 
     def test_get_ocr_texts_results(self):
         """Test OCRService get_ocr_texts_results function."""
+
+        mock_background_task = Mock()
+        mock_background_task.add_task = lambda *args, **kwargs: None
+
         ocr_service = OCRService(
             override_get_settings(),
             "sample-url",
             override_get_pinecone_index(),
             override_get_llm_embedding_client(),
+            mock_background_task,
         )
         sample_results = {"paragraphs": [{"content": "Sample text"}]}
         result = ocr_service.get_ocr_texts_results(sample_results)
@@ -25,11 +32,16 @@ class TestOCRService:
 
     def test_format_pinecone_payload(self):
         """Test format_pinecone_payload function."""
+
+        mock_background_task = Mock()
+        mock_background_task.add_task = lambda *args, **kwargs: None
+
         ocr_service = OCRService(
             override_get_settings(),
             "sample-url",
             override_get_pinecone_index(),
             override_get_llm_embedding_client(),
+            mock_background_task,
         )
 
         response = ocr_service.format_pinecone_payload(
