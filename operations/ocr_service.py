@@ -196,4 +196,6 @@ class OCRService:
         if not expire_time or float(expire_time[0]) <= time.time():
             raise RequestValidationError("Invalid signed URL: expired")
 
+        # Add validation that validates GCP file is present in the bucket
+
         return parsed_url.path.split("/")[-1]

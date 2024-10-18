@@ -3,7 +3,7 @@
 import uuid
 from datetime import timedelta
 
-from fastapi import UploadFile
+from fastapi import BackgroundTasks, UploadFile
 from fastapi.exceptions import RequestValidationError
 from google.cloud import exceptions, storage  # type: ignore[attr-defined]
 from loguru import logger
@@ -20,6 +20,7 @@ class FileProcessor:
         app_settings: Settings,
         gcp_client: storage.Client,
         files: list[UploadFile],
+        background_tasks: BackgroundTasks,
     ):
         """
         Inject class dependencies.
@@ -34,6 +35,7 @@ class FileProcessor:
         self.bucket = self.gcp_client.bucket(
             f"{self.gcp_client.project}_{self.settings.bucket_name}"
         )
+        self.background_tasks = background_tasks
 
     def validate_files(self):
         """
@@ -115,6 +117,13 @@ class FileProcessor:
 
         return signed_url
 
+    @staticmethod
+    def upload_file_wrapper(bucket_obj, file_bytes, sanitized_name, content_type):
+        logger.info(f"Uploading file: {sanitized_name}")
+        blob = bucket_obj.blob(sanitized_name)
+        blob.upload_from_string(file_bytes, content_type=content_type)
+        logger.info(f"Uploaded: {sanitized_name}")
+
     def upload_files(self) -> list[dict]:
         """
         Upload files to cloud storage.
@@ -132,8 +141,13 @@ class FileProcessor:
                 continue
 
             try:
-                blob = self.bucket.blob(sanitized_name)
-                blob.upload_from_file(file_obj.file, content_type=file_obj.content_type)
+                self.background_tasks.add_task(
+                    self.upload_file_wrapper,
+                    self.bucket,
+                    file_obj.file.read(),
+                    sanitized_name,
+                    file_obj.content_type,
+                )
                 presigned_url = self.generate_signed_url(sanitized_name)
             except exceptions.GoogleCloudError as exc:
                 logger.error(f"Exception encountered on GCP service: {exc}")
