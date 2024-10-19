@@ -109,9 +109,16 @@ def get_llm_embedding_client(
     settings: Settings = Depends(get_settings),
 ) -> OpenAIEmbeddings:
     """Get OpenAI LLM embeddings client"""
-    return OpenAIEmbeddings(
-        model=settings.openai_embeddings_model,
-    )
+    params = {
+        "model": settings.openai_embeddings_model,
+    }
+
+    if settings.openai_embeddings_dimensions:
+        params["dimensions"] = (
+            settings.openai_embeddings_dimensions  # type:ignore[assignment]
+        )
+
+    return OpenAIEmbeddings(**params)  # type:ignore[arg-type]
 
 
 def get_redis_client(settings: Settings = Depends(get_settings)):

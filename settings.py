@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     pinecone_host: str = Field(default="host", alias="PINECONE_HOST")
     pinecone_pool_count: int = Field(default=1, alias="PINECONE_POOL_COUNT")
     openai_api_key: str = Field(default="key", alias="OPENAI_API_KEY")
+    openai_embeddings_dimensions: Optional[int] = Field(
+        default=None, alias="OPENAI_EMBEDDINGS_DIMENSIONS"
+    )
     openai_embeddings_model: str = Field(
         default="text-embedding-ada-002", alias="OPENAI_EMBEDDING_MODEL"
     )
