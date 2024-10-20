@@ -68,12 +68,13 @@ class SemanticSearchService:
 
         for text in result.matches:
             metadata = text.metadata
-            match_texts.append(
-                {
-                    "score": text.score,
-                    "text": metadata.get("text"),
-                }
-            )
+            if text.score >= 0.8:
+                match_texts.append(
+                    {
+                        "score": text.score,
+                        "text": metadata.get("text"),
+                    }
+                )
 
         if match_texts:
             self.redis_client.set(
