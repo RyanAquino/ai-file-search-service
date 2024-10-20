@@ -16,7 +16,7 @@ A file search service that performs OCR on files and embeds the text to enable s
 - Redis caching and rate limits
 ---
 ### Endpoints
-API endpoints documentation also available upon running - http://localhost:3000/docs
+API endpoints documentation are also available upon running - http://localhost:3000/docs
 
 | Method |                      URL                      | Description                                                                                                                                                                             |                                                Example payload                                                 |
 |--------|:---------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------:| 

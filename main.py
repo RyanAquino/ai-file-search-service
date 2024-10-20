@@ -12,12 +12,16 @@ from settings import get_settings
 
 def create_app(disable_limiter=False):
     """
-    Create FatAPI application.
+    Create FastAPI application.
 
     :param disable_limiter: Boolean value to enable/disable rate limiting.
     :return: FastAPI application instance.
     """
-    app = FastAPI()
+    app = FastAPI(
+        title="AI File Search Service",
+        description="AI File Search Service",
+        version="1.0.0",
+    )
 
     if disable_limiter:
         limiter.enabled = False
