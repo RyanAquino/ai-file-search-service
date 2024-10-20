@@ -96,6 +96,6 @@ class TestOCREmbeddingsAPI:
                 "url": f"https://storage.googleapis.com/test-bucket/file.txt?Expires={future_ts}"
             },
         )
-        assert response.status_code == 204
+        assert response.status_code == 202
         assert response.content == b""
         assert add_task_mock.call_count == 1

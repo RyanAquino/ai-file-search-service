@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     app_host: Optional[str] = Field(default="0.0.0.0", alias="APP_HOST")
     app_port: Optional[int] = Field(default=3000, alias="APP_PORT")
     app_debug: Optional[bool] = Field(default=False, alias="APP_DEBUG")
+    app_workers: Optional[int] = Field(default=1, alias="APP_WORKERS")
     db_url: str = Field(default="db", alias="DB_URL")
     max_file_upload_count: Optional[int] = Field(
         default=5, alias="MAX_FILE_UPLOAD_COUNT"
