@@ -1,6 +1,7 @@
 """OCR API Endpoint module."""
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Request, status
+from fastapi.responses import JSONResponse
 
 from dependencies import get_current_user, get_llm_embedding_client, get_pinecone_index
 from models.requests import OCRRequestURLs
@@ -39,5 +40,5 @@ def process_ocr(
     ocr_service = OCRService(
         settings, payload.url, pinecone_index, llm_embedding_client, background_tasks
     )
-    ocr_service.process_url()
-    return Response(status_code=status.HTTP_202_ACCEPTED)
+    task = ocr_service.process_url()
+    return JSONResponse(status_code=status.HTTP_202_ACCEPTED, content={"task_id": task.id})
