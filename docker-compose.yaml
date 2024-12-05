@@ -56,3 +56,14 @@ services:
       - "6379:6379"
     expose:
       - 6379
+
+  cassandra:
+    image: cassandra:latest
+    container_name: cassandra-container
+    ports:
+      - "9042:9042"
+    expose:
+      - 9042
+    environment:
+      - CASSANDRA_USER=admin
+      - CASSANDRA_PASSWORD=admin

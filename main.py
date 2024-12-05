@@ -5,9 +5,12 @@ from fastapi import FastAPI
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
+from celery_app import init_celery
 from rate_limit_config import limiter
 from routers import router
 from settings import get_settings
+
+settings = get_settings()
 
 
 def create_app(disable_limiter=False):
@@ -27,6 +30,7 @@ def create_app(disable_limiter=False):
         limiter.enabled = False
 
     app.state.limiter = limiter
+    app.celery = init_celery(settings)
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
     app.include_router(router.api_router)
@@ -34,11 +38,11 @@ def create_app(disable_limiter=False):
 
 
 app = create_app()
+celery = app.celery
 
 
 def main():
     """Main entry point for FastAPI application."""
-    settings = get_settings()
     uvicorn.run(
         "main:app",
         host=settings.app_host,

@@ -49,6 +49,9 @@ class Settings(BaseSettings):
     redis_cache_db: Optional[int] = Field(default=1, alias="REDIS_CACHE_DB")
     redis_cache_exp: Optional[int] = Field(default=86400, alias="REDIS_CACHE_EXP")
 
+    broker_url: str = Field(default="localhost", alias="BROKER_URL")
+    result_backend: str = Field(default="localhost", alias="RESULT_BACKEND")
+
     model_config = SettingsConfigDict(env_file=".env", extra="allow")
 
 
